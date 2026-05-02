@@ -43,6 +43,11 @@ else
 		WEBRTC_ENABLED=true
 	fi
 
+	# Default REST auth endpoint for Kubernetes deployment.
+	if [ -z "$SERVER_URL" ] ; then
+		SERVER_URL="http://restauth.restauth.svc.cluster.local:8000/"
+	fi
+
 	# Generate a new 'working.config' from template and environment
 	while IFS='' read -r line || [[ -n $line ]] ; do
 		while [[ "$line" =~ (\$[A-Z_][A-Z_0-9]*) ]] ; do

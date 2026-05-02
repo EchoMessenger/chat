@@ -13,6 +13,8 @@
 	"server_status": "$SERVER_STATUS_PATH",
 	"use_x_forwarded_for": true,
 	"default_country_code": "$DEFAULT_COUNTRY_CODE",
+	"p2p_delete_enabled": true,
+	"msg_delete_age": 86400,
 
 	"media": {
 		"use_handler": "$MEDIA_HANDLER",
@@ -50,11 +52,16 @@
 	},
 
 	"auth_config": {
-		"logical_names": [],
+		"logical_names": ["basic:rest", "rest:"],
 		"basic": {
 			"add_to_tags": true,
 			"min_login_length": 3,
 			"min_password_length": 6
+		},
+		"rest": {
+			"server_url": "$SERVER_URL",
+			"allow_new_accounts": true,
+			"use_separate_endpoints": true
 		},
 		"token": {
 			"expire_in": 1209600,
@@ -194,15 +201,19 @@
 
 	"plugins": [
 		{
-			"enabled": $PLUGIN_PYTHON_CHAT_BOT_ENABLED,
-			"name": "python_chat_bot",
-			"timeout": 20000,
+			"enabled": $PLUGIN_ROUTER_ENABLED,
+			"name": "$PLUGIN_ROUTER_NAME",
+			"timeout": $PLUGIN_ROUTER_TIMEOUT,
 			"filters": {
-				"account": "C"
+				"fire_hose": "$PLUGIN_ROUTER_FILTER_FIREHOSE",
+				"account": "$PLUGIN_ROUTER_FILTER_ACCOUNT",
+				"topic": "$PLUGIN_ROUTER_FILTER_TOPIC",
+				"subscription": "$PLUGIN_ROUTER_FILTER_SUBSCRIPTION",
+				"message": "$PLUGIN_ROUTER_FILTER_MESSAGE"
 			},
-			"failure_code": 0,
-			"failure_text": null,
-			"service_addr": "tcp://localhost:40051"
+			"failure_code": $PLUGIN_ROUTER_FAILURE_CODE,
+			"failure_text": "$PLUGIN_ROUTER_FAILURE_TEXT",
+			"service_addr": "$PLUGIN_ROUTER_SERVICE_ADDR"
 		}
 	]
 }

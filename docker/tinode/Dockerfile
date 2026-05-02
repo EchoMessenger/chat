@@ -11,7 +11,7 @@
 
 FROM alpine:3.17
 
-ARG VERSION=0.21
+ARG VERSION=0.24.7
 ENV VERSION=$VERSION
 ARG BINVERS=$VERSION
 
@@ -25,7 +25,7 @@ LABEL version=$VERSION
 # Alternatively use one of: postgres mongodb rethinkdb for a corresponsing
 # DB backend or alldbs to build a generic Tinode docker image, for example:
 # `--build-arg TARGET_DB=postgres` to build for PostgreSQL.
-ARG TARGET_DB=mysql
+ARG TARGET_DB=postgres
 ENV TARGET_DB=$TARGET_DB
 
 # Runtime options.
@@ -54,7 +54,7 @@ ENV DEFAULT_COUNTRY_CODE=US
 ENV MYSQL_DSN='root@tcp(mysql)/tinode?parseTime=true&collation=utf8mb4_0900_ai_ci'
 
 # The PostgreSQL DSN connection.
-ENV POSTGRES_DSN='postgresql://postgres:postgres@localhost:5432/tinode?sslmode=disable&connect_timeout=10'
+ENV POSTGRES_DSN='postgresql://postgres:postgres@postgres:5432/tinode?sslmode=disable&connect_timeout=10'
 
 # Disable chatbot plugin by default.
 ENV PLUGIN_PYTHON_CHAT_BOT_ENABLED=false
@@ -93,13 +93,13 @@ ENV SMTP_DOMAINS=''
 
 # Salt used to generate the API key. Don't change it unless you also change the
 # API key in the webapp & Android.
-ENV API_KEY_SALT=T713/rYYgW7g4m3vG6zGRh7+FM1t0T8j13koXScOAj4=
+ENV API_KEY_SALT=
 
 # Key used to sign authentication tokens.
-ENV AUTH_TOKEN_KEY=wfaY2RgF2S1OQI/ZlK+LSrp1KB2jwAdGAIHQ7JZn+Kc=
+ENV AUTH_TOKEN_KEY=
 
 # Key to initialize UID generator
-ENV UID_ENCRYPTION_KEY=la6YsO+bNX/+XIkOqc5Svw==
+ENV UID_ENCRYPTION_KEY=
 
 # Disable TLS by default.
 ENV TLS_ENABLED=false
@@ -167,6 +167,22 @@ RUN mkdir /botdata
 # Make scripts runnable
 RUN chmod +x entrypoint.sh
 RUN chmod +x credentials.sh
+
+# Hardening: non-root user
+# Создаём группу и пользователя tinode с фиксированным uid/gid=1000
+RUN addgroup -g 1000 tinode && \
+    adduser -D -u 1000 -G tinode tinode
+
+# Передаём владение всеми файлами приложения новому пользователю
+RUN chown -R tinode:tinode /opt/tinode /botdata
+
+# Создаём директории для runtime данных которые нужны writable
+# (uploads и logs будут на PVC, но на случай локального запуска)
+RUN mkdir -p /opt/tinode/uploads /var/log/tinode && \
+    chown -R tinode:tinode /opt/tinode/uploads /var/log/tinode
+
+# Переключаемся на non-root пользователя
+USER tinode
 
 # Generate config from template and run the server.
 ENTRYPOINT ./entrypoint.sh
