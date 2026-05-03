@@ -33,6 +33,7 @@
 				"region": "$AWS_REGION",
 				"bucket": "$AWS_S3_BUCKET",
 				"endpoint": "$AWS_S3_ENDPOINT",
+				"force_path_style": true,
 				"presign_ttl": 3600,
 				"cache_control": "max-age=86400",
 				"cors_origins": $AWS_CORS_ORIGINS
